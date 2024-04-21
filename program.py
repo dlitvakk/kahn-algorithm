@@ -2,6 +2,7 @@ from collections import defaultdict, deque
 import random
 import networkx as nx
 import matplotlib.pyplot as plt
+import time
 
 def visualize_graph(graph):
     # створюємо орієнтований граф (Di - directed)
@@ -76,10 +77,14 @@ class Graph:
         return graph
 
 if __name__ == "__main__":
-    graph = Graph.generate_random_graph(10, 0.5)
+    graph = Graph.generate_random_graph(200, 0.9)
 
     graph.print_graph()
     visualize_graph(graph)
+    start_time = time.time_ns()
     topological_sort = graph.topological_sort()
+    end_time = time.time_ns()
     print("Алгоритм Кана:")
     print(' '.join(map(str, topological_sort)))
+    execution_time = (end_time - start_time) / 1000000000 # з наносекунд в секунди
+    print(f"Час виконання:{execution_time:10f} секунд")
