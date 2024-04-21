@@ -1,1 +1,1 @@
-# kahn-algorithm
+# Kahn's Algorithm
