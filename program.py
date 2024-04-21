@@ -7,6 +7,10 @@ import time
 def visualize_graph(graph):
     # створюємо орієнтований граф (Di - directed)
     G = nx.DiGraph()
+    for vertex in graph.adjacency_list:
+        G.add_node(vertex)
+
+        # Add edges from the graph's adjacency list
     for vertex, neighbors in graph.adjacency_list.items():
         for neighbor in neighbors:
             G.add_edge(vertex, neighbor)
@@ -19,13 +23,19 @@ def visualize_graph(graph):
     plt.show()
 
 class Graph:
-    def __init__(self, vertices):
+    def __init__(self, vertices, adjacency_list=None, adjacency_matrix=None):
         self.vertices = vertices
-
-        # вектор суміжності для кожної вершини, створюємо список для кожного ключа (вершини)
         self.adjacency_list = defaultdict(list)
-        for i in range(vertices):
-            self.adjacency_list[i] = []
+        self.adjacency_matrix = adjacency_matrix
+
+        if adjacency_list:
+            self.adjacency_list = adjacency_list
+
+            if not adjacency_matrix:
+                self.adjacency_matrix = [[0] * vertices for _ in range(vertices)]
+                for vertex, neighbors in adjacency_list.items():
+                    for neighbor in neighbors:
+                        self.adjacency_matrix[vertex][neighbor] = 1
 
     # додаємо вершину до списків суміжності
     def add_edge(self, source, destination):
@@ -62,24 +72,81 @@ class Graph:
         for vertex, neighbors in self.adjacency_list.items():
             print(f"Вершина {vertex}: {' '.join(map(str, neighbors))}")
 
-    @staticmethod
-    def generate_random_graph(n, delta):
-        max_edges = (n * (n - 1)) // 2
-        num_edges = int(max_edges * delta)
+def adjacency_matrix_to_list(adjacency_matrix):
+    adjacency_list = {}
+    num_vertices = len(adjacency_matrix)
 
-        graph = Graph(n)
-        edge_list = [(i, j) for i in range(n) for j in range(i + 1, n)]
+    for i in range(num_vertices):
+        adjacency_list[i] = []
 
-        random.shuffle(edge_list)
-        for edge in edge_list[:num_edges]:
-            graph.add_edge(edge[0], edge[1])
+        for j in range(num_vertices):
+            if adjacency_matrix[i][j] == 1:
+                adjacency_list[i].append(j)
 
-        return graph
+    return adjacency_list
+
+def print_graph_matrix(adjacency_list):
+    num_vertices = len(adjacency_list)
+    adjacency_matrix = [[0] * num_vertices for _ in range(num_vertices)]
+
+    for vertex, neighbors in adjacency_list.items():
+        for neighbor in neighbors:
+            adjacency_matrix[vertex][neighbor] = 1
+
+    for row in adjacency_matrix:
+        print(row)
+
+def generate_random_graph(n, delta):
+    max_edges = (n * (n - 1)) // 2
+    num_edges = int(max_edges * delta)
+
+    graph = Graph(n)
+    edge_list = [(i, j) for i in range(n) for j in range(i + 1, n)]
+
+    random.shuffle(edge_list)
+    for edge in edge_list[:num_edges]:
+        graph.add_edge(edge[0], edge[1])
+
+    return graph
+
 
 if __name__ == "__main__":
-    graph = Graph.generate_random_graph(200, 0.9)
+    # graph = Graph.generate_random_graph(200, 0.9)
+    print(
+        "Оберіть щось з наступного: \n Введіть \033[1;36m1\033[0m - задати граф матрицею суміжності, \n \033[1;36m2\033[0m - списками суміжності, \n \033[1;36m3\033[0m - згенерувати граф")
+    choice = int(input("Ваш варіант: "))
 
-    graph.print_graph()
+    if choice == 1:
+        n = int(input("Введіть кількість вершин: "))
+        print("Введіть матрицю суміжності:")
+        adjacency_matrix = [list(map(int, input().split())) for _ in range(n)]
+        adjacency_list = adjacency_matrix_to_list(adjacency_matrix)
+        graph = Graph(n, adjacency_list, adjacency_matrix)
+        graph.print_graph()
+
+
+    elif choice == 2:
+        n = int(input("Введіть кількість вершин: "))
+        print("Введіть список суміжності (для кожної вершини введіть її сусідів, розділених пробілом): ")
+        adjacency_list = {}
+        for i in range(n):
+            neighbors = list(map(int, input(f"Вершина {i}: ").split()))
+            adjacency_list[i] = neighbors
+        graph = Graph(n)
+        for vertex, neighbors in adjacency_list.items():
+            for neighbor in neighbors:
+                graph.add_edge(vertex, neighbor)
+
+        print("Матриця суміжності: ")
+        print_graph_matrix(adjacency_list)
+
+    elif choice == 3:
+        n = int(input("Введіть кількість вершин: "))
+        delta = float(input("Введіть щільність графу (від 0 до 1): "))
+        graph = generate_random_graph(n, delta)
+        graph.print_graph()
+
+
     visualize_graph(graph)
     start_time = time.time_ns()
     topological_sort = graph.topological_sort()
